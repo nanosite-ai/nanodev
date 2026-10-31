@@ -1,5 +1,5 @@
 // create [dir]: start a new project from a template (or the starter kit), clone it, install it and run it.
-// `npm create nanodev@beta my-store` (packages/create-nanodev) runs exactly this.
+// `npm create @nanosite/nanodev@beta my-store` (packages/create-nanodev) runs exactly this.
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { Command } from "commander";
@@ -150,7 +150,7 @@ export const registerCreate = (program: Command): void => {
     .option("-p, --port <port>", "local port for nanodev dev", String(DEFAULT_DEV_PORT))
     .addHelpText(
       "after",
-      "\nExamples:\n  npm create nanodev@beta my-store\n  nanodev create my-store\n  nanodev create my-store --template ecommerce --no-dev\n  nanodev create --type website --name \"My Site\"\n  nanodev create shop --template store-beauty --no-dev --json",
+      "\nExamples:\n  npm create @nanosite/nanodev@beta my-store\n  nanodev create my-store\n  nanodev create my-store --template ecommerce --no-dev\n  nanodev create --type website --name \"My Site\"\n  nanodev create shop --template store-beauty --no-dev --json",
     )
     .action(async (dir: string | undefined, opts: CreateOpts, cmd: Command) => {
       requireGit();

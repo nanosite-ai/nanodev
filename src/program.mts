@@ -29,7 +29,7 @@ export const buildProgram = (): Command => {
     .showHelpAfterError()
     .addHelpText(
       "after",
-      "\nGet started:\n  npm create nanodev@beta my-store   (a new store, running locally)\n  nanodev login\n  nanodev link\n  cd <project> && nanodev dev\n  nanodev push\n  nanodev publish\n  nanodev open\n\nDocs: https://nanosite.ai/docs/develop-locally\nIssues: https://github.com/nanosite-ai/nanodev/issues",
+      "\nGet started:\n  npm create @nanosite/nanodev@beta my-store   (a new store, running locally)\n  nanodev login\n  nanodev link\n  cd <project> && nanodev dev\n  nanodev push\n  nanodev publish\n  nanodev open\n\nDocs: https://nanosite.ai/docs/develop-locally\nIssues: https://github.com/nanosite-ai/nanodev/issues",
     );
   registerAuth(program);
   registerCreate(program);

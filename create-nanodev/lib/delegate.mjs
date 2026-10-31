@@ -16,7 +16,7 @@ export const resolveNanodevEntry = (resolveFrom = import.meta.url) => {
   try {
     pkgJson = require.resolve(`${NANODEV_PACKAGE}/package.json`);
   } catch {
-    throw new Error(`${NANODEV_PACKAGE} isn't installed next to create-nanodev: reinstall with npm create nanodev@beta`);
+    throw new Error(`${NANODEV_PACKAGE} isn't installed next to @nanosite/create-nanodev: reinstall with npm create @nanosite/nanodev@beta`);
   }
   const root = path.dirname(pkgJson);
   const { name } = JSON.parse(readFileSync(pkgJson, "utf8"));

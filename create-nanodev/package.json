@@ -1,7 +1,7 @@
 {
-  "name": "create-nanodev",
+  "name": "@nanosite/create-nanodev",
   "version": "0.1.0-beta.0",
-  "description": "npm create nanodev: start a nano-site store or website from a template and run it locally. By nanosite.ai",
+  "description": "npm create @nanosite/nanodev: start a nano-site store or website from a template and run it locally. By nanosite.ai",
   "keywords": [
     "nanosite",
     "nanodev",
@@ -39,6 +39,7 @@
     "LICENSE"
   ],
   "publishConfig": {
+    "access": "public",
     "tag": "beta"
   },
   "scripts": {

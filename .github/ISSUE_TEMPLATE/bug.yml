@@ -29,7 +29,7 @@ body:
       label: Where
       options:
         - nanodev CLI
-        - npm create nanodev
+        - npm create @nanosite/nanodev
         - Claude Code plugin
         - Docs
         - Not sure

@@ -1,7 +1,7 @@
 # nanodev plugin for Claude Code
 
 By nanosite.ai. Skills for working on a nano-site store or website you cloned with `nanodev link` or created with
-`npm create nanodev`:
+`npm create @nanosite/nanodev`:
 
 | Skill | Use it for |
 |---|---|

@@ -1,9 +1,9 @@
-# create-nanodev
+# @nanosite/create-nanodev
 
 Start a new [nano-site](https://nanosite.ai) store (or website) and run it on your computer. By nanosite.ai.
 
 ```bash
-npm create nanodev@beta my-store
+npm create @nanosite/nanodev@beta my-store
 ```
 
 This runs `nanodev create my-store` from [`@nanosite/nanodev`](https://www.npmjs.com/package/@nanosite/nanodev):
@@ -13,8 +13,8 @@ nano-site account, clones it into `./my-store`, installs it and starts the dev s
 Options are passed through to `nanodev create`:
 
 ```bash
-npm create nanodev@beta my-store -- --template ecommerce --no-dev
-npm create nanodev@beta -- --type website --name "My Site"
+npm create @nanosite/nanodev@beta my-store -- --template ecommerce --no-dev
+npm create @nanosite/nanodev@beta -- --type website --name "My Site"
 ```
 
 Requires Node.js 22.12 or newer and git. nanodev is in beta.

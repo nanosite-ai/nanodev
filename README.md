@@ -13,7 +13,7 @@ This repository holds:
 | Folder | What | npm |
 |---|---|---|
 | `/` (`src/`, `bin/`) | the `nanodev` CLI | [`@nanosite/nanodev`](https://www.npmjs.com/package/@nanosite/nanodev) |
-| `create-nanodev/` | `npm create nanodev` | [`create-nanodev`](https://www.npmjs.com/package/create-nanodev) |
+| `create-nanodev/` | `npm create @nanosite/nanodev` | [`@nanosite/create-nanodev`](https://www.npmjs.com/package/@nanosite/create-nanodev) |
 | `plugin/` | the nanodev Claude Code plugin | (this repo is its marketplace) |
 
 ## Install
@@ -23,7 +23,7 @@ Requires Node.js 22.12 or newer and git.
 Start a new store, running locally:
 
 ```bash
-npm create nanodev@beta my-store
+npm create @nanosite/nanodev@beta my-store
 ```
 
 Or install the CLI and work on an existing project:
