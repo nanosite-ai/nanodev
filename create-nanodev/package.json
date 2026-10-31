@@ -1,0 +1,53 @@
+{
+  "name": "create-nanodev",
+  "version": "0.1.0-beta.0",
+  "description": "npm create nanodev: start a nano-site store or website from a template and run it locally. By nanosite.ai",
+  "keywords": [
+    "nanosite",
+    "nanodev",
+    "create",
+    "starter",
+    "ecommerce",
+    "store"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "nanosite.ai",
+    "url": "https://nanosite.ai"
+  },
+  "homepage": "https://nanosite.ai/docs/develop-locally",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanosite-ai/nanodev.git",
+    "directory": "create-nanodev"
+  },
+  "bugs": {
+    "url": "https://github.com/nanosite-ai/nanodev/issues"
+  },
+  "type": "module",
+  "bin": {
+    "create-nanodev": "bin/create-nanodev.mjs"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "!lib/**/*.test.*",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "tag": "beta"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nanosite/nanodev": "^0.1.0-beta.0"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.8"
+  }
+}

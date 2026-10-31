@@ -1,0 +1,65 @@
+name: Bug report
+description: Something in nanodev, create-nanodev or the plugin doesn't work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please never paste tokens (`ndv_…`), keys or files from `~/.nanodev/`.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you ran, what you expected, and what you saw instead (paste the error).
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. nanodev link …
+        2. nanodev dev
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      options:
+        - nanodev CLI
+        - npm create nanodev
+        - Claude Code plugin
+        - Docs
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: nanodev version
+      description: Output of `nanodev --version`.
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: OS and Node.js version
+      placeholder: macOS 15, Node 22.12
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: nanodev doctor
+      description: Output of `nanodev doctor` in the project folder.
+      render: text
+  - type: dropdown
+    id: project-type
+    attributes:
+      label: Project type
+      options:
+        - Store
+        - Website
+        - Not relevant

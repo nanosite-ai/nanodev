@@ -1,0 +1,20 @@
+{
+  "name": "nanodev",
+  "version": "0.1.0",
+  "description": "nanodev by nanosite.ai: skills for working on a nano-site store or website locally (the nanodev loop, store SSR and SDK patterns, website pages, hydration debugging).",
+  "icon": ".claude-plugin/icon.png",
+  "author": {
+    "name": "nanosite.ai",
+    "url": "https://nanosite.ai"
+  },
+  "license": "MIT",
+  "keywords": [
+    "nanosite",
+    "nanodev",
+    "ecommerce",
+    "ssr",
+    "react"
+  ],
+  "homepage": "https://github.com/nanosite-ai/nanodev",
+  "repository": "https://github.com/nanosite-ai/nanodev"
+}

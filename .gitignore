@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+*.tgz
+# No lockfile: a lockfile written on Windows/macOS can miss Linux native bindings (rolldown, esbuild) and CI
+# runs on all three. npm install resolves fresh within the declared ranges.
+package-lock.json
+plugin/evals/*/results/
+.DS_Store

@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: website-faq-section
+description: A linked website gets an FAQ section on the home page, with its copy in the i18n catalog, published with nanodev.
+tags: [website, smoke]
+runs: 3
+context:
+  scaffold_script: fixture.sh
+execution:
+  max_turns: 30
+  timeout_seconds: 600

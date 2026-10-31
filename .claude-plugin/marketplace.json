@@ -1,0 +1,22 @@
+{
+  "name": "nanodev",
+  "description": "nanodev by nanosite.ai: the Claude Code plugin for nano-site stores and websites developed locally.",
+  "owner": {
+    "name": "nanosite.ai",
+    "url": "https://nanosite.ai"
+  },
+  "plugins": [
+    {
+      "name": "nanodev",
+      "source": "./plugin",
+      "description": "nanodev by nanosite.ai: skills for working on a nano-site store or website locally (the nanodev loop, store SSR and SDK patterns, website pages, hydration debugging).",
+      "version": "0.1.0",
+      "author": {
+        "name": "nanosite.ai",
+        "url": "https://nanosite.ai"
+      },
+      "homepage": "https://github.com/nanosite-ai/nanodev",
+      "license": "MIT"
+    }
+  ]
+}

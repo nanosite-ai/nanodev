@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: nanodev docs
+    url: https://nanosite.ai/docs/develop-locally
+    about: How to install nanodev, link a project and work locally.

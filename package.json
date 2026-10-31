@@ -1,0 +1,60 @@
+{
+  "name": "@nanosite/nanodev",
+  "version": "0.1.0-beta.0",
+  "description": "Work on your nano-site store or website locally, with your own editor and AI agent: link, dev, preview and publish from the terminal. nanodev by nanosite.ai",
+  "keywords": [
+    "nanosite",
+    "nanodev",
+    "cli",
+    "ecommerce",
+    "store",
+    "website",
+    "claude-code"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "nanosite.ai",
+    "url": "https://nanosite.ai"
+  },
+  "homepage": "https://nanosite.ai/docs/develop-locally",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanosite-ai/nanodev.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nanosite-ai/nanodev/issues"
+  },
+  "type": "module",
+  "bin": {
+    "nanodev": "bin/nanodev.mjs"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "!dist/plugin",
+    "!dist/**/*.test.*",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepack": "npm run build",
+    "plugin:validate": "claude plugin validate plugin"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.8"
+  }
+}
