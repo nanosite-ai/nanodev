@@ -1,6 +1,6 @@
 {
   "name": "nanodev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "nanodev by nanosite.ai: skills for working on a nano-site store or website locally (the nanodev loop, store SSR and SDK patterns, website pages, hydration debugging).",
   "icon": ".claude-plugin/icon.png",
   "author": {

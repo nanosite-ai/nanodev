@@ -6,7 +6,7 @@ your own AI agent. **nanodev by nanosite.ai.**
 Your project stays one project: its code lives in a git repository on nano-site, and nanodev keeps your folder and
 the cloud in sync. Switch between the AI builder on the web and your local editor whenever you like.
 
-> **Beta** (`0.1.0-beta.0`). Something not working? [Open an issue](https://github.com/nanosite-ai/nanodev/issues/new/choose).
+> **Beta** (`0.1.0-beta.1`). Something not working? [Open an issue](https://github.com/nanosite-ai/nanodev/issues/new/choose).
 
 This repository holds:
 

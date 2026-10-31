@@ -136,6 +136,10 @@ export interface RepoHead {
   newerOnMain?: CommitInfo[];
 }
 
+/** Where a publish goes: the live site, or the private preview link. */
+export const DEPLOY_MODE = { production: "production", preview: "preview" } as const;
+export type DeployMode = (typeof DEPLOY_MODE)[keyof typeof DEPLOY_MODE];
+
 export const DEPLOY_JOB_STATUS = { pending: "pending", running: "running", succeeded: "succeeded", failed: "failed" } as const;
 export type DeployJobStatus = (typeof DEPLOY_JOB_STATUS)[keyof typeof DEPLOY_JOB_STATUS];
 
@@ -143,7 +147,7 @@ export type DeployJobStatus = (typeof DEPLOY_JOB_STATUS)[keyof typeof DEPLOY_JOB
 export interface DeployJob {
   id: string;
   projectId: string;
-  mode: "preview" | "production";
+  mode: DeployMode;
   /** The commit asked for. */
   sha?: string;
   status: DeployJobStatus;

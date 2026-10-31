@@ -21,7 +21,9 @@ let projectType: "store" | "website" = "website";
 
 /** The fake deploy endpoint: what was asked, and a refusal to answer with. */
 const deploys: { body: Record<string, unknown>; polls: number }[] = [];
-let deployRefusal: { status: number; code: string } | null = null;
+let deployRefusal: { status: number; code: string; error?: string } | null = null;
+/** The fake answers with a running job of this mode, whatever was asked. */
+let forcedJobMode: "production" | "preview" | null = null;
 const onMain = (sha: string): boolean => {
   try {
     execFileSync("git", ["merge-base", "--is-ancestor", sha, "refs/heads/main"], { cwd: bare });
@@ -143,10 +145,15 @@ beforeAll(async () => {
       req.on("data", (chunk: Buffer) => (raw += chunk.toString()));
       req.on("end", () => {
         const body = JSON.parse(raw) as Record<string, unknown>;
-        if (deployRefusal) return send(deployRefusal.status, { success: false, code: deployRefusal.code, error: "refused" });
+        if (deployRefusal) {
+          return send(deployRefusal.status, { success: false, code: deployRefusal.code, error: deployRefusal.error ?? "refused" });
+        }
+        if (forcedJobMode) {
+          return send(202, { success: true, job: { id: "jobX", projectId: PROJECT_ID, mode: forcedJobMode, sha: body.sha, status: "running", logs: [] } });
+        }
         if (typeof body.sha !== "string" || !onMain(body.sha)) return send(409, { success: false, code: "sha_not_on_main", error: "no" });
         deploys.push({ body, polls: 0 });
-        return send(202, { success: true, job: { id: `job${deploys.length}`, projectId: PROJECT_ID, mode: "production", sha: body.sha, status: "pending", logs: [] } });
+        return send(202, { success: true, job: { id: `job${deploys.length}`, projectId: PROJECT_ID, mode: body.mode, sha: body.sha, status: "pending", logs: [] } });
       });
       return;
     }
@@ -164,7 +171,10 @@ beforeAll(async () => {
           sha,
           status: "succeeded",
           logs,
-          result: { url: "https://p1.nanosite.live/", version: (d.body.version as string) ?? "0.1.1", commitSha: sha },
+          result:
+            d.body.mode === "preview"
+              ? { url: "https://p1-preview.nanosite.live/", version: "preview", commitSha: sha }
+              : { url: "https://p1.nanosite.live/", version: (d.body.version as string) ?? "0.1.1", commitSha: sha },
         },
       });
     }
@@ -555,6 +565,78 @@ setTimeout(() => process.exit(0), 3000);
     }
   });
 
+  it("publish --preview-link pushes, then builds exactly that commit to the preview link", async () => {
+    edit(b, "src/PreviewLink.tsx", "export const L = 1;\n");
+    process.env.NANODEV_PUBLISH_POLL_MS = "20";
+    try {
+      const res = await nanodev("publish", "--preview-link", "-m", "Try it on the preview link", "--json", "-C", b);
+      expect(res.code, res.stderr).toBe(0);
+      const head = sh(b, "rev-parse", "HEAD");
+      expect(bareHead()).toBe(head);
+      expect(deploys.at(-1)?.body).toEqual({ mode: "preview", sha: head });
+      const events = res.stdout.trim().split("\n").map((l) => JSON.parse(l) as Record<string, unknown>);
+      expect(events.map((e) => e.event)).toEqual(["pushed", "queued", "log", "status", "log", "published"]);
+      expect(events.find((e) => e.event === "queued")).toMatchObject({ mode: "preview", sha: head });
+      expect(events.at(-1)).toMatchObject({ mode: "preview", sha: head, version: null, url: "https://p1-preview.nanosite.live/" });
+
+      const human = await nanodev("publish", "--preview-link", "--no-push", "-C", b);
+      expect(human.code, human.stderr).toBe(0);
+      expect(human.stdout).toMatch(/Published [0-9a-f]{7} to the preview link/);
+      expect(human.stdout).toContain("preview https://p1-preview.nanosite.live/");
+
+      const withVersion = await nanodev("publish", "--preview-link", "--no-push", "--as", "3.0.0", "-C", b);
+      expect(withVersion.code).toBe(1);
+      expect(withVersion.stderr).toMatch(/the preview link has none/);
+    } finally {
+      delete process.env.NANODEV_PUBLISH_POLL_MS;
+    }
+  });
+
+  it("publish --preview-link --as is refused before anything is committed or pushed", async () => {
+    const before = bareHead();
+    const localBefore = sh(b, "rev-parse", "HEAD");
+    edit(b, "src/NotYet.tsx", "export const N = 1;\n");
+    const res = await nanodev("publish", "--preview-link", "--as", "3.0.0", "-m", "should not be committed", "-C", b);
+    expect(res.code).toBe(1);
+    expect(res.stderr).toMatch(/the preview link has none/);
+    expect(bareHead()).toBe(before);
+    expect(sh(b, "rev-parse", "HEAD")).toBe(localBefore);
+    expect(sh(b, "status", "--porcelain")).toContain("src/NotYet.tsx");
+    rmSync(path.join(b, "src", "NotYet.tsx"));
+  });
+
+  it("publish refuses a running job of the other target instead of reporting it as its own", async () => {
+    for (const [args, running, text] of [
+      [["publish", "--no-push"], "preview", /answered with a preview link build/],
+      [["publish", "--preview-link", "--no-push"], "production", /answered with a live site publish/],
+    ] as const) {
+      forcedJobMode = running;
+      try {
+        const res = await nanodev(...args, "--json", "-C", b);
+        expect(res.code).toBe(1);
+        const events = res.stdout.trim().split("\n").map((l) => JSON.parse(l) as Record<string, unknown>);
+        expect(events.some((e) => e.event === "published")).toBe(false);
+        expect(events.at(-1)).toMatchObject({ event: "failed" });
+        expect(String(events.at(-1)?.error)).toMatch(text);
+      } finally {
+        forcedJobMode = null;
+      }
+    }
+  });
+
+  it("publish --preview-link without a plan gets a clear message and a terminal failed event", async () => {
+    deployRefusal = { status: 403, code: "preview_plan_required" };
+    try {
+      const res = await nanodev("publish", "--preview-link", "--no-push", "--json", "-C", b);
+      expect(res.code).toBe(1);
+      const last = JSON.parse(res.stdout.trim().split("\n").at(-1)!) as Record<string, unknown>;
+      expect(last).toMatchObject({ event: "failed", code: "preview_plan_required" });
+      expect(String(last.error)).toMatch(/preview link is part of a plan/);
+    } finally {
+      deployRefusal = null;
+    }
+  });
+
   it("publish --no-push refuses unpushed commits; refusals from nano-site get clear messages", async () => {
     const count = deploys.length;
     edit(b, "local.txt", "local\n");
@@ -569,10 +651,10 @@ setTimeout(() => process.exit(0), 3000);
     for (const [code, text] of [
       ["agent_change_parked", /agent change that conflicted/],
       ["project_busy", /busy with another change/],
-      ["deploy_in_progress", /another publish of this project is still running/],
+      ["deploy_in_progress", /A preview link build of commit abc is running/],
       ["version_exists", /already published/],
     ] as const) {
-      deployRefusal = { status: 409, code };
+      deployRefusal = { status: 409, code, ...(code === "deploy_in_progress" ? { error: "A preview link build of commit abc is running for this project." } : {}) };
       try {
         const res = await nanodev("publish", "--no-push", "-C", b);
         expect(res.code).toBe(1);

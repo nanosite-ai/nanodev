@@ -18,7 +18,7 @@ printf 'node_modules/\ndist/\n.env*\n' > .gitignore
 # don't edit it here).
 # nanodev-agents-block: website
 cat > AGENTS.md <<'NANODEV_AGENTS_EOF'
-<!-- nanodev:begin v=2 -->
+<!-- nanodev:begin v=3 -->
 ## Local development (nanodev)
 
 This section is for developers working on this website on their own machine with the nanodev CLI. The
@@ -43,6 +43,8 @@ clone of it.
   as the live site, without changing the shared version.
 - `nanodev publish`: push, then put exactly that commit live. Going live is a separate step from pushing;
   only publish when the owner asked for it.
+- `nanodev publish --preview-link`: push, then build exactly that commit to the project's preview link
+  (`<id>-preview.nanosite.live`) instead of the live site. No new version; the live site is unchanged.
 
 ### Rules
 - Edit source files only: `dist/`, `node_modules/` and `.nanodev/` are generated or local.

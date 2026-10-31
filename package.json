@@ -1,6 +1,6 @@
 {
   "name": "@nanosite/nanodev",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0-beta.1",
   "description": "Work on your nano-site store or website locally, with your own editor and AI agent: link, dev, preview and publish from the terminal. nanodev by nanosite.ai",
   "keywords": [
     "nanosite",

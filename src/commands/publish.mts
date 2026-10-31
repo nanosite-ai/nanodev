@@ -1,6 +1,6 @@
 // publish: push, then ask nano-site to publish exactly the pushed commit and follow the job.
 import type { Command } from "commander";
-import { API_PATHS, ApiError, DEPLOY_JOB_STATUS, type DeployJob, type DeployJobResponse } from "../lib/api.mjs";
+import { API_PATHS, ApiError, DEPLOY_JOB_STATUS, DEPLOY_MODE, type DeployJob, type DeployJobResponse } from "../lib/api.mjs";
 import { authedClient, context, loginIdentity } from "../lib/context.mjs";
 import { CliError } from "../lib/errors.mjs";
 import { aheadBehind, dirtyFiles, fetchMain, revParse, REMOTE_MAIN } from "../lib/git.mjs";
@@ -25,6 +25,8 @@ interface PublishOpts {
   push: boolean;
   message?: string;
   as?: string;
+  /** Build the commit to the preview link (`<id>-preview.nanosite.live`) instead of the live site. */
+  previewLink?: boolean;
   wait: boolean;
   timeout: string;
 }
@@ -46,16 +48,19 @@ const headAlreadyPushed = (root: string): string => {
 export const registerPublish = (program: Command): void => {
   program
     .command("publish")
-    .description("Push, then publish exactly that commit to your live site and follow the build")
+    .description(
+      "Push, then publish exactly that commit to your live site (or, with --preview-link, to the private preview link) and follow the build",
+    )
     .option("--no-push", "don't push: publish HEAD, which must already be on nano-site's main")
     .option("-m, --message <text>", "commit message for uncommitted changes (as nanodev push)")
     // Not --version: that is the program's own flag.
     .option("--as <version>", "version to publish as, e.g. 2.0.0 (default: the next patch of the live version)")
+    .option("--preview-link", "publish to the preview link (<id>-preview.nanosite.live) instead of the live site: no new version")
     .option("--no-wait", "start the publish and exit without following the build")
     .option("--timeout <minutes>", "stop following the build after this long", String(DEFAULT_TIMEOUT_MIN))
     .addHelpText(
       "after",
-      '\nExamples:\n  nanodev publish\n  nanodev publish -m "New hero section"\n  nanodev publish --no-push --as 2.0.0\n  nanodev publish --json',
+      '\nExamples:\n  nanodev publish\n  nanodev publish -m "New hero section"\n  nanodev publish --preview-link\n  nanodev publish --no-push --as 2.0.0\n  nanodev publish --preview-link --json',
     )
     .action(async (opts: PublishOpts, cmd: Command) => {
       const state: PublishState = { sha: null, jobId: null };
@@ -89,6 +94,10 @@ const apiErrorBodyCode = (err: ApiError): string | null => {
 };
 
 const publish = async (opts: PublishOpts, cmd: Command, state: PublishState): Promise<void> => {
+  // Flags first: an invalid command must not commit or push anything.
+  const toPreview = Boolean(opts.previewLink);
+  if (toPreview && opts.as) throw new CliError("--as names a live version: the preview link has none. Drop --as or --preview-link");
+  const requestedMode = toPreview ? DEPLOY_MODE.preview : DEPLOY_MODE.production;
   const ctx = context(cmd);
   const linked = requireLinked(ctx.cwd);
   const { projectId } = linked.project;
@@ -110,11 +119,12 @@ const publish = async (opts: PublishOpts, cmd: Command, state: PublishState): Pr
     state.sha = sha;
   }
 
-  step(`Publishing ${short(sha)} to ${linked.project.name}`);
+  const target = toPreview ? "the preview link" : "the live site";
+  step(`Publishing ${short(sha)} to ${target} of ${linked.project.name}`);
   let job: DeployJob;
   try {
     const res = await client.post<DeployJobResponse>(API_PATHS.deploy(projectId), {
-      mode: "production",
+      mode: requestedMode,
       sha,
       ...(opts.as ? { version: opts.as } : {}),
       // Safe to repeat: for the same commit nano-site answers with the publish already running.
@@ -126,12 +136,23 @@ const publish = async (opts: PublishOpts, cmd: Command, state: PublishState): Pr
     if (clear && err instanceof ApiError) throw new ApiError(clear, err.status, err.body);
     throw err;
   }
+  // The server says what it is building: never report a preview link build as live, or the reverse.
+  const mode = job.mode ?? requestedMode;
+  if (mode !== requestedMode) {
+    throw new CliError(
+      `nano-site answered with a ${mode === DEPLOY_MODE.preview ? "preview link build" : "live site publish"} (job ${job.id}), not the ${toPreview ? "preview link build" : "live publish"} you asked for. Wait for it to finish, then run nanodev publish again`,
+    );
+  }
+  const isPreview = mode === DEPLOY_MODE.preview;
   if (job.sha && job.sha !== sha) {
     // The server can only add sandbox files on top for web publishes; the CLI asks for the exact one.
     warn(`nano-site is publishing ${short(job.sha)}, not ${short(sha)}`);
   }
   state.jobId = job.id;
-  event({ event: "queued", jobId: job.id, sha: job.sha ?? sha }, `${c.dim("·")} Publish queued (job ${job.id})`);
+  event(
+    { event: "queued", jobId: job.id, sha: job.sha ?? sha, mode },
+    `${c.dim("·")} Publish to ${target} queued (job ${job.id})`,
+  );
   if (!opts.wait) return;
 
   const pollMs = Math.max(50, Number(process.env[POLL_MS_ENV]) || POLL_INTERVAL_MS);
@@ -164,8 +185,17 @@ const publish = async (opts: PublishOpts, cmd: Command, state: PublishState): Pr
   }
   const built = job.result?.commitSha ?? job.sha ?? sha;
   event(
-    { event: "published", jobId: job.id, sha: built, version: job.result?.version ?? null, url: job.result?.url ?? null },
-    `${c.ok("✔")} Published ${short(built)}${job.result?.version ? ` as ${job.result.version}` : ""}`,
+    {
+      event: "published",
+      jobId: job.id,
+      mode,
+      sha: built,
+      version: isPreview ? null : (job.result?.version ?? null),
+      url: job.result?.url ?? null,
+    },
+    isPreview
+      ? `${c.ok("✔")} Published ${short(built)} to the preview link`
+      : `${c.ok("✔")} Published ${short(built)}${job.result?.version ? ` as ${job.result.version}` : ""}`,
   );
-  if (job.result?.url) info(`live    ${job.result.url}`);
+  if (job.result?.url) info(`${isPreview ? "preview" : "live   "} ${job.result.url}`);
 };

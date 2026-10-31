@@ -26,9 +26,16 @@ clones. `nanodev` keeps this folder and the cloud in step.
 5. `nanodev push -m "<what changed, in the owner's words>"`: commit and send your work to nano-site. It
    rebases on new commits first, checks the lockfile can install in the cloud, and updates the shared
    version (`main`) that the nano-site editor and every clone see. It does not make the change live.
-6. Going live is Publish: the Publish button in the nano-site editor, or `nanodev publish` if your nanodev
-   version has it. To show the owner a change before that, share a `nanodev preview` link if your nanodev
-   version has it (`nanodev --help` lists the commands), or the nano-site editor's preview after pushing.
+6. Publishing has two targets, both from the terminal:
+   - `nanodev publish`: push, then put exactly that commit on the **live site** (a new version). Only when
+     the owner asked to go live. The Publish button in the nano-site editor does the same.
+   - `nanodev publish --preview-link`: push, then build exactly that commit to the project's **preview
+     link** (`<id>-preview.nanosite.live`). No new version, and the live site is unchanged: use it to show
+     the owner a pushed change before going live.
+   `nanodev preview` is different: it pushes a snapshot of this folder, uncommitted changes included, to
+   your private preview ref (`refs/previews/<you>`) and builds a private link from it, without changing
+   the shared version (`main`). Add `--json` to follow either publish as JSON events; it ends with
+   `published` (with the `url`) or `failed` (with a `code`).
 
 Push small and often: one change per push keeps conflicts rare and makes each change easy to review and
 undo in the web editor's history.
