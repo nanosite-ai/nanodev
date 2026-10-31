@@ -14,15 +14,17 @@ By nanosite.ai. Skills for working on a nano-site store or website you cloned wi
 
 nano-site commits an agent guide into every project: a "Local development (nanodev)" block in `AGENTS.md`, an
 `@AGENTS.md` import in `CLAUDE.md`, and a `.claude/settings.json` that offers this plugin
-(`extraKnownMarketplaces.nanodev` and `enabledPlugins["nanodev@nanodev"]`). Claude Code offers to install it when you
-trust the project folder. To install it yourself:
+(`extraKnownMarketplaces.nanosite` and `enabledPlugins["nanodev@nanosite"]`, from the
+[nanosite plugin catalog](https://github.com/nanosite-ai/claude-plugins)). Claude Code offers to install it when you trust the
+project folder. To install it yourself:
 
 ```text
-/plugin marketplace add nanosite-ai/nanodev
-/plugin install nanodev@nanodev
+/plugin marketplace add nanosite-ai/claude-plugins
+/plugin install nanodev@nanosite
 ```
 
-`nanodev doctor` warns when a project's committed marketplace isn't this one.
+`nanodev doctor` warns when a project's committed marketplace isn't the catalog. Projects that still offer the older
+`nanodev@nanodev` move to `nanodev@nanosite` on nano-site's next agent-guide refresh.
 
 ## Where the skills come from
 

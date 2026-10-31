@@ -5,6 +5,10 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { dirtyFiles } from "./git.mjs";
 import {
+  LEGACY_PLUGIN_MARKETPLACE,
+  LEGACY_PLUGIN_SOURCE,
+  LOCAL_PLUGIN_ID,
+  LOCAL_PLUGIN_MARKETPLACE,
   OFFICIAL_PLUGIN_SOURCE,
   PLUGIN_CHECK,
   PLUGIN_ID,
@@ -16,10 +20,10 @@ import {
 } from "./localPlugin.mjs";
 
 describe("mergeLocalPluginSettings", () => {
-  it("points the marketplace at the folder and enables the plugin", () => {
+  it("points the local marketplace at the folder, enables it and turns the catalog plugin off", () => {
     expect(JSON.parse(mergeLocalPluginSettings(null, "/p")!)).toEqual({
-      extraKnownMarketplaces: { [PLUGIN_MARKETPLACE]: { source: { source: "directory", path: "/p" } } },
-      enabledPlugins: { [PLUGIN_ID]: true },
+      extraKnownMarketplaces: { [LOCAL_PLUGIN_MARKETPLACE]: { source: { source: "directory", path: "/p" } } },
+      enabledPlugins: { [LOCAL_PLUGIN_ID]: true, [PLUGIN_ID]: false },
     });
   });
 
@@ -34,6 +38,18 @@ describe("mergeLocalPluginSettings", () => {
 
 describe("checkCommittedPluginSource", () => {
   const settings = (source: unknown) => JSON.stringify({ extraKnownMarketplaces: { [PLUGIN_MARKETPLACE]: { source } } });
+
+  it("names the nanosite catalog", () => {
+    expect(PLUGIN_ID).toBe("nanodev@nanosite");
+    expect(OFFICIAL_PLUGIN_SOURCE).toEqual({ source: "github", repo: "nanosite-ai/claude-plugins" });
+  });
+
+  it("calls an earlier kit's nanodev@nanodev offer legacy", () => {
+    const legacy = JSON.stringify({ extraKnownMarketplaces: { [LEGACY_PLUGIN_MARKETPLACE]: { source: LEGACY_PLUGIN_SOURCE } } });
+    const res = checkCommittedPluginSource(legacy);
+    expect(res.status).toBe(PLUGIN_CHECK.legacy);
+    expect(res.detail).toMatch(/nanodev@nanosite/);
+  });
 
   it("is ok for the official source and warns about anything else", () => {
     expect(checkCommittedPluginSource(settings(OFFICIAL_PLUGIN_SOURCE)).status).toBe(PLUGIN_CHECK.ok);

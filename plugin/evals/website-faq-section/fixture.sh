@@ -18,7 +18,7 @@ printf 'node_modules/\ndist/\n.env*\n' > .gitignore
 # don't edit it here).
 # nanodev-agents-block: website
 cat > AGENTS.md <<'NANODEV_AGENTS_EOF'
-<!-- nanodev:begin v=3 -->
+<!-- nanodev:begin v=4 -->
 ## Local development (nanodev)
 
 This section is for developers working on this website on their own machine with the nanodev CLI. The

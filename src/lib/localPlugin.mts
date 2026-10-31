@@ -5,10 +5,17 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { git } from "./git.mjs";
 
-export const PLUGIN_MARKETPLACE = "nanodev";
+/** The official marketplace: nanosite.ai's plugin catalog (public nanosite-ai/claude-plugins). Same values the server writes. */
+export const PLUGIN_MARKETPLACE = "nanosite";
 export const PLUGIN_ID = `nanodev@${PLUGIN_MARKETPLACE}`;
-/** The official marketplace (the public nanosite-ai/nanodev repo). Same value the server writes. */
-export const OFFICIAL_PLUGIN_SOURCE = { source: "github", repo: "nanosite-ai/nanodev" } as const;
+export const OFFICIAL_PLUGIN_SOURCE = { source: "github", repo: "nanosite-ai/claude-plugins" } as const;
+/** nanodev's own marketplace: what earlier kits committed, and the name of the local plugin folder's marketplace. */
+export const LEGACY_PLUGIN_MARKETPLACE = "nanodev";
+export const LEGACY_PLUGIN_ID = `nanodev@${LEGACY_PLUGIN_MARKETPLACE}`;
+export const LEGACY_PLUGIN_SOURCE = { source: "github", repo: "nanosite-ai/nanodev" } as const;
+/** The local plugin folder (NANODEV_PLUGIN_DIR) is its own marketplace, named in its .claude-plugin/marketplace.json. */
+export const LOCAL_PLUGIN_MARKETPLACE = LEGACY_PLUGIN_MARKETPLACE;
+export const LOCAL_PLUGIN_ID = LEGACY_PLUGIN_ID;
 
 export const CLAUDE_SETTINGS_FILE = ".claude/settings.json";
 export const CLAUDE_LOCAL_SETTINGS_FILE = ".claude/settings.local.json";
@@ -20,8 +27,8 @@ const isObject = (v: unknown): v is Json => typeof v === "object" && v !== null 
 export const jsonIndent = (text: string): string => /^([ \t]+)"/m.exec(text)?.[1] ?? "  ";
 
 /**
- * settings.local.json pointing the nanodev marketplace at a local plugin folder (and enabling it). Other keys,
- * the file's indent and line endings are kept. Null when the existing file isn't a JSON object (left alone).
+ * settings.local.json pointing the local marketplace at a local plugin folder and enabling it, with the committed
+ * catalog plugin turned off so the two don't both load. Other keys, the file's indent and line endings are kept. Null when the existing file isn't a JSON object (left alone).
  */
 export const mergeLocalPluginSettings = (existing: string | null, pluginDir: string): string | null => {
   let settings: Json = {};
@@ -38,8 +45,8 @@ export const mergeLocalPluginSettings = (existing: string | null, pluginDir: str
   const plugins = isObject(settings.enabledPlugins) ? settings.enabledPlugins : {};
   const next = {
     ...settings,
-    extraKnownMarketplaces: { ...marketplaces, [PLUGIN_MARKETPLACE]: { source: { source: "directory", path: pluginDir } } },
-    enabledPlugins: { ...plugins, [PLUGIN_ID]: true },
+    extraKnownMarketplaces: { ...marketplaces, [LOCAL_PLUGIN_MARKETPLACE]: { source: { source: "directory", path: pluginDir } } },
+    enabledPlugins: { ...plugins, [LOCAL_PLUGIN_ID]: true, [PLUGIN_ID]: false },
   };
   const eol = existing?.includes("\r\n") ? "\r\n" : "\n";
   return `${JSON.stringify(next, null, existing ? jsonIndent(existing) : "  ")}\n`.replace(/\n/g, eol);
@@ -71,22 +78,33 @@ export const offerLocalPlugin = (root: string, pluginDir: string): string | null
   return CLAUDE_LOCAL_SETTINGS_FILE;
 };
 
-export const PLUGIN_CHECK = { ok: "ok", missing: "missing", other: "other" } as const;
+export const PLUGIN_CHECK = { ok: "ok", missing: "missing", legacy: "legacy", other: "other" } as const;
 export type PluginCheck = (typeof PLUGIN_CHECK)[keyof typeof PLUGIN_CHECK];
 
-/** Does the committed `.claude/settings.json` offer the official nanodev marketplace? */
+const sameGithubSource = (source: unknown, expected: { source: string; repo: string }): boolean =>
+  isObject(source) && source.source === expected.source && source.repo === expected.repo;
+
+/** Does the committed `.claude/settings.json` offer nanodev from the official catalog? */
 export const checkCommittedPluginSource = (settingsText: string | null): { status: PluginCheck; detail: string } => {
   if (settingsText === null) return { status: PLUGIN_CHECK.missing, detail: `${CLAUDE_SETTINGS_FILE} doesn't offer the nanodev plugin yet (nano-site adds it)` };
   let source: unknown;
+  let legacySource: unknown;
   try {
     const parsed: unknown = JSON.parse(settingsText);
     const markets = isObject(parsed) && isObject(parsed.extraKnownMarketplaces) ? parsed.extraKnownMarketplaces : {};
     source = isObject(markets[PLUGIN_MARKETPLACE]) ? markets[PLUGIN_MARKETPLACE].source : undefined;
+    legacySource = isObject(markets[LEGACY_PLUGIN_MARKETPLACE]) ? markets[LEGACY_PLUGIN_MARKETPLACE].source : undefined;
   } catch {
     return { status: PLUGIN_CHECK.other, detail: `${CLAUDE_SETTINGS_FILE} isn't valid JSON` };
   }
+  if (source === undefined && sameGithubSource(legacySource, LEGACY_PLUGIN_SOURCE)) {
+    return {
+      status: PLUGIN_CHECK.legacy,
+      detail: `${CLAUDE_SETTINGS_FILE} offers the older ${LEGACY_PLUGIN_ID}; nano-site moves it to ${PLUGIN_ID} on its next agent-kit refresh`,
+    };
+  }
   if (source === undefined) return { status: PLUGIN_CHECK.missing, detail: `${CLAUDE_SETTINGS_FILE} doesn't offer the nanodev plugin yet (nano-site adds it)` };
-  if (isObject(source) && source.source === OFFICIAL_PLUGIN_SOURCE.source && source.repo === OFFICIAL_PLUGIN_SOURCE.repo) {
+  if (sameGithubSource(source, OFFICIAL_PLUGIN_SOURCE)) {
     return { status: PLUGIN_CHECK.ok, detail: `${PLUGIN_ID} from github ${OFFICIAL_PLUGIN_SOURCE.repo}` };
   }
   return {

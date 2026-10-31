@@ -14,7 +14,7 @@ This repository holds:
 |---|---|---|
 | `/` (`src/`, `bin/`) | the `nanodev` CLI | [`@nanosite/nanodev`](https://www.npmjs.com/package/@nanosite/nanodev) |
 | `create-nanodev/` | `npm create @nanosite/nanodev` | [`@nanosite/create-nanodev`](https://www.npmjs.com/package/@nanosite/create-nanodev) |
-| `plugin/` | the nanodev Claude Code plugin | (this repo is its marketplace) |
+| `plugin/` | the nanodev Claude Code plugin | (installed from the [nanosite plugin catalog](https://github.com/nanosite-ai/claude-plugins)) |
 
 ## Install
 
@@ -44,12 +44,15 @@ More: `pull`, `preview` (a private cloud preview of your folder), `status`, `ope
 ## The Claude Code plugin
 
 nano-site writes an agent guide into every project (`AGENTS.md`, `CLAUDE.md`) and offers this plugin in the
-project's `.claude/settings.json`, so Claude Code suggests it when you trust the folder. To add it yourself:
+project's `.claude/settings.json`, so Claude Code suggests it when you trust the folder. To add it yourself, from
+the [nanosite plugin catalog](https://github.com/nanosite-ai/claude-plugins):
 
 ```text
-/plugin marketplace add nanosite-ai/nanodev
-/plugin install nanodev@nanodev
+/plugin marketplace add nanosite-ai/claude-plugins
+/plugin install nanodev@nanosite
 ```
+
+This repository is also its own (older) `nanodev` marketplace, so `nanodev@nanodev` keeps working.
 
 Skills: `nanodev:workflow` (the local loop), `nanodev:store` (SSR, SDK hooks, SEO, i18n), `nanodev:website` and
 `nanodev:debug-hydration`. See [plugin/README.md](./plugin/README.md).

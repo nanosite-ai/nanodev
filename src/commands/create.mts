@@ -1,5 +1,5 @@
 // create [dir]: start a new project from a template (or the starter kit), clone it, install it and run it.
-// `npm create @nanosite/nanodev@beta my-store` (packages/create-nanodev) runs exactly this.
+// `npm create @nanosite/nanodev@beta my-store` runs exactly this.
 import { existsSync } from "node:fs";
 import path from "node:path";
 import type { Command } from "commander";

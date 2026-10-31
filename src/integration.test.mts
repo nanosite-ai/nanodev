@@ -685,11 +685,12 @@ setTimeout(() => process.exit(0), 3000);
       const dir = res.json().dir as string;
       const local = JSON.parse(readFileSync(path.join(dir, ".claude", "settings.local.json"), "utf8"));
       expect(local.extraKnownMarketplaces.nanodev).toEqual({ source: { source: "directory", path: path.join(tmp, "plugin") } });
+      expect(local.enabledPlugins).toMatchObject({ "nanodev@nanodev": true, "nanodev@nanosite": false });
       expect(sh(dir, "status", "--porcelain")).toBe("");
 
       const missing = (await nanodev("doctor", "--json", "-C", dir)).json().checks as { name: string; status: string }[];
       expect(missing.find((ch) => ch.name === "plugin")?.status).toBe("warn");
-      edit(dir, ".claude/settings.json", JSON.stringify({ extraKnownMarketplaces: { nanodev: { source: { source: "github", repo: "nanosite-ai/nanodev" } } } }));
+      edit(dir, ".claude/settings.json", JSON.stringify({ extraKnownMarketplaces: { nanosite: { source: { source: "github", repo: "nanosite-ai/claude-plugins" } } } }));
       const ok = (await nanodev("doctor", "--json", "-C", dir)).json().checks as { name: string; status: string }[];
       expect(ok.find((ch) => ch.name === "plugin")?.status).toBe("ok");
     } finally {
