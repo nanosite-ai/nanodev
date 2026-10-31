@@ -26,6 +26,9 @@ jobs:
         run: |
           git config --global user.name "nanodev ci"
           git config --global user.email "ci@nanodev.invalid"
+      # npm 10 (bundled with Node 22) crashes resolving vitest's peer set
+      # ("Cannot read properties of null (reading 'edgesOut')"); npm 11 doesn't.
+      - run: npm install -g npm@11 --no-audit --no-fund
       # No lockfile, and nothing here needs install scripts: never run them.
       - run: npm install --ignore-scripts --no-audit --no-fund
       - run: npm run build
